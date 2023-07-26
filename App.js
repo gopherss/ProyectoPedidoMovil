@@ -1,20 +1,90 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
-export default function App() {
+
+//Pantallas
+import DetallePlatillo from './src/views/DetallePlatillo';
+import Menu from './src/views/Menu';
+import NuevaOrden from './src/views/NuevaOrden';
+import ProgresoPedido from './src/views/ProgresoPedido';
+import ResumenPedido from './src/views/ResumenPedido';
+
+//Components
+import BotonResumen from './src/components/interface/BotonResumen';
+
+
+//Importar Context
+import MongoDBState from './src/context/database/mongoDBState';
+import PedidoState from './src/context/pedidos/pedidosState';
+import 'react-native-gesture-handler';
+
+const Stack = createStackNavigator();
+
+const App = () => {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <>
+      <MongoDBState>
+        <PedidoState>
+
+          <NavigationContainer>
+            <Stack.Navigator
+              screenOptions={{
+                headerStyle: {
+                  backgroundColor: '#FF5D73',
+                },
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                  color: '#FBEAFF'
+                },
+                headerTitleAlign: 'center'
+              }}
+
+            >
+              <Stack.Screen
+                name='NuevaOrden'
+                component={NuevaOrden}
+                options={{
+                  title: 'Bievenido'
+                }}
+              />
+              <Stack.Screen
+                name='Menu'
+                component={Menu}
+                options={{
+                  title: 'Elige tu Platillo',
+                  headerRight: props => <BotonResumen />
+                }}
+              />
+              <Stack.Screen
+                name='DetallePlatillo'
+                component={DetallePlatillo}
+                options={{
+                  title: 'Detalle Platillo'
+                }}
+              />
+
+              <Stack.Screen
+                name='ResumenPedido'
+                component={ResumenPedido}
+                options={{
+                  title: 'Resumen Pedido'
+                }}
+              />
+              <Stack.Screen
+                name='ProgresoPedido'
+                component={ProgresoPedido}
+                options={{
+                  title: 'Progreso de Pedido'
+                }}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+
+        </PedidoState>
+      </MongoDBState>
+    </>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
