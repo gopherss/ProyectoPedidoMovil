@@ -1,5 +1,5 @@
 import React, { useEffect, useContext } from 'react';
-import { ScrollView, Alert, StyleSheet, View  } from 'react-native';
+import { ScrollView, StyleSheet, View, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 //Estilos
 import { Text, Button, ListItem, Avatar, Icon } from '@rneui/themed'
@@ -8,14 +8,18 @@ import globalStyles from '../styles/global';
 
 //Contexto
 import PedidoContext from '../context/pedidos/pedidosContext';
-
+import MongoDBContext from '../context/database/mongoDBContext';
 
 const ResumenPedido = (_) => {
 
     const navigation = useNavigation();
 
     //Pedido 
-    const { pedido, total, mostrarResumen } = useContext(PedidoContext);
+    const { pedido, total, mostrarResumen, eliminarProducto, pedidoRealizado } = useContext(PedidoContext);
+
+    // Mongodb Conexto
+    const { guardarPedido } = useContext(MongoDBContext);
+
 
     useEffect(() => {
         calcularTotal();
@@ -27,6 +31,58 @@ const ResumenPedido = (_) => {
         nuevoTotal = pedido.reduce((nuevoTotal, articulo) => nuevoTotal + articulo.total, 0);
         mostrarResumen(nuevoTotal)
     }
+
+    const confirmarEliminacion = _id => {
+        Alert.alert(
+            '¿Deseas eliminar este articulo?',
+            'Una vez eliminado no se puede recuperar',
+            [
+                {
+                    text: 'Confirma',
+                    onPress: () => {
+                        eliminarProducto(_id);
+                    }
+                },
+                {
+                    text: 'Cancelar',
+                    style: 'cancel'
+                }
+            ]
+        )
+    }
+
+
+    const progresoPedido = () => {
+        Alert.alert(
+            'Revisa Tu Pedido',
+            'Una vez que se realiza tu pedido, no podrás cambiar',
+            [
+                {
+                    text: 'Confirma',
+                    onPress: async () => {
+
+                        //Crear un objeto con los datos del cliente
+
+                        const pedidoObj = {
+                            tiempoentrega: 0,
+                            completado: false,
+                            total: Number(total),
+                            orden: pedido,
+                        }
+                        
+                        let id = await guardarPedido(pedidoObj);
+                        pedidoRealizado(id);
+                        navigation.navigate('ProgresoPedido');
+                    }
+                },
+                {
+                    text: 'Cancelar',
+                    style: 'cancel'
+                }
+            ]
+        )
+    }
+
 
     return (
         <>
@@ -55,7 +111,17 @@ const ResumenPedido = (_) => {
                                         <ListItem.Subtitle style={styles.textoDetalle}>
                                             Precio: S/. {precio}
                                         </ListItem.Subtitle>
+                                        <ListItem.Subtitle>
+                                        </ListItem.Subtitle>
                                     </ListItem.Content>
+                                    <Button
+                                        onPress={() => confirmarEliminacion(_id)}
+                                        color="#ed213a"
+                                        size='sm'
+                                        buttonStyle={{ width: 90 }}
+                                    >
+                                        Eliminar
+                                    </Button>
                                 </ListItem>
                             );
                         })}
@@ -69,10 +135,11 @@ const ResumenPedido = (_) => {
                             radius={'xl'}
                             ViewComponent={LinearGradient}
                             linearGradientProps={styles.masProductos}
-                            onPress={_ => navigation.navigate('Menu')}
+                            onPress={_ => progresoPedido()}
                         >
-                            <Text style={styles.textoMasProductos}> Más Productos</Text>
-                            <Icon name='add' color='#FFF' />
+                            <Text style={styles.textoMasProductos}> Comprar </Text>
+
+                            <Icon name='money' color='white' />
                         </Button>
                     </View>
                 </View>
@@ -97,7 +164,8 @@ const styles = StyleSheet.create({
         colors: ['#0061ff', '#60efff'],
         start: { x: 1, y: 0 },
         end: { x: 0.2, y: 0 },
-        paddingVertical: 13,
+        paddingVertical: 10,
+        marginBottom: 50
     },
     textoTotal: {
         textAlign: 'center',
@@ -106,8 +174,8 @@ const styles = StyleSheet.create({
         fontSize: 50,
         marginVertical: 10,
     },
-    textoMasProductos: { 
-        color: '#FFF', 
+    textoMasProductos: {
+        color: '#FFF',
         textTransform: 'uppercase',
         fontSize: 20,
         fontWeight: 'bold',

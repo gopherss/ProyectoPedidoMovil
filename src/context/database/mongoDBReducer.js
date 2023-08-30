@@ -1,4 +1,4 @@
-import { OBTENER_PRODUCTOS_EXITO } from '../../types/index';
+import { OBTENER_PRODUCTOS_EXITO, GUARDAR_PEDIDO } from '../../types/index';
 
 export default (state, action) => {
 
@@ -7,6 +7,10 @@ export default (state, action) => {
             return {
                 ...state,
                 menu: action.payload
+            }
+        case GUARDAR_PEDIDO:
+            return {
+                ...state,
             }
         default:
             return state;

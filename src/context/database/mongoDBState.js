@@ -2,7 +2,7 @@ import React, { useReducer, useState } from 'react';
 
 import MongoDBContext from './mongoDBContext';
 import MongoDBReducer from './mongoDBReducer';
-import { OBTENER_PRODUCTOS_EXITO } from '../../types/index';
+import { GUARDAR_PEDIDO, OBTENER_PRODUCTOS_EXITO } from '../../types/index';
 
 import { sortBy } from 'lodash';
 import axios from 'axios';
@@ -13,7 +13,8 @@ const MongoDBState = props => {
 
     //State Incial
     const initialState = {
-        menu: []
+        menu: [],
+        miPedido: []
     };
 
     // useReducer con dispatch para ejecutar las funciones
@@ -37,13 +38,27 @@ const MongoDBState = props => {
         }
     }
 
+    const guardarPedido = async pedido => {
+        let response;
+        try {
+            const URL = 'https://restaurante.fly.dev/guardar-pedido';
+            response = await axios.post(URL, pedido);
+            dispatch({
+                type: GUARDAR_PEDIDO,
+            })
+        } catch (error) {
+            console.log(error);
+        }
+       return await response.data._id;
+    }
 
     return (
         <MongoDBContext.Provider
             value={{
                 menu: state.menu,
                 obtenerProductos,
-                isLoading
+                isLoading,
+                guardarPedido
             }}
         >
             {props.children}
